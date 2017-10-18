@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using System.Text;
 
 public class OculusTouchInteractions : MonoBehaviour {
     private GameObject grabbedObject;
@@ -9,6 +10,8 @@ public class OculusTouchInteractions : MonoBehaviour {
     public string buttonName;
     public float grabRadius;
     public LayerMask grabMask;
+    private StringBuilder sb, buffer;
+    
     void GrabObject()
     {
         grabbing = true;
@@ -39,12 +42,19 @@ public class OculusTouchInteractions : MonoBehaviour {
             OVRInput.GetLocalControllerVelocity(controller);
             grabbedObject.GetComponent<Rigidbody>().angularVelocity =
             OVRInput.GetLocalControllerAngularVelocity(controller);
+            
             grabbedObject = null;
         }
     }
     // Update is called once per frame
     void Update()
     {
+        sb.Append(OVRInput.GetLocalControllerPosition(OVRInput.Controller.LTouch) + OVRInput.GetLocalControllerPosition(OVRInput.Controller.RTouch));
+        //Debug.Log(controller);
+       Debug.Log(OVRInput.GetLocalControllerPosition(OVRInput.Controller.RTouch));
+        //OVRInput.GetLocalControllerVelocity(controller);
+
+
         if (!grabbing && Input.GetAxis(buttonName) == 1) GrabObject();
         if (grabbing && Input.GetAxis(buttonName) < 1) DropObject();
     }
@@ -53,6 +63,6 @@ public class OculusTouchInteractions : MonoBehaviour {
     // Use this for initialization
     void Start()
     {
-
+        sb = new StringBuilder();
     }
 }

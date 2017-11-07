@@ -157,7 +157,8 @@ public class boatCoordinateManager {
     private double applyFactor(double x, double factor)
     {
         double den = 1 / Math.Exp(3 - factor);
-        if (den > 4) return x * 4;
+        double max = 2.5;
+        if (den > max) return x * max;
         else return x * den;
     }
 }

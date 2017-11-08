@@ -7,7 +7,7 @@ public class KanoeController : MonoBehaviour {
 
     private Rigidbody rb;
     private boatCoordinateManager boat;
-    private bool controllingWithOneTouch = true;
+    private bool controllingWithOneTouch = false;
     enum PaddlingState {NotPaddling, PaddlingLeft, PaddlingRight};
     // --
     // These values are to determine if the person is trying to circle

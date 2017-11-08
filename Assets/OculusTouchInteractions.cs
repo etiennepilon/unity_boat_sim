@@ -51,7 +51,7 @@ public class OculusTouchInteractions : MonoBehaviour {
     {
         sb.Append(OVRInput.GetLocalControllerPosition(OVRInput.Controller.LTouch) + OVRInput.GetLocalControllerPosition(OVRInput.Controller.RTouch));
         //Debug.Log(controller);
-       Debug.Log(OVRInput.GetLocalControllerPosition(OVRInput.Controller.RTouch));
+      // Debug.Log(OVRInput.GetLocalControllerPosition(OVRInput.Controller.RTouch));
         //OVRInput.GetLocalControllerVelocity(controller);
 
 

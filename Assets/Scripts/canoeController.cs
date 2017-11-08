@@ -44,9 +44,9 @@ public class CanoeController : MonoBehaviour
     {
         PaddlingState state = getPaddlingState();
         double paddleDistance = 0.9;
-        if (state == PaddlingState.PaddlingLeft) boat.paddleLeftWithCorrectionFactor(paddleDistance, incrementalTurn);
-        else if (state == PaddlingState.PaddlingRight) boat.paddleRightWithCorrectionFactor(paddleDistance, incrementalTurn);
-        else boat.notPaddlingWithCorrection(incrementalTurn);
+        if (state == PaddlingState.PaddlingLeft) boat.paddleLeftWithCorrectionFactor(paddleDistance);
+        else if (state == PaddlingState.PaddlingRight) boat.paddleRightWithCorrectionFactor(paddleDistance);
+        else boat.notPaddlingWithCorrection();
 
         rb.MovePosition(new Vector3(boat.p_y, 0, boat.p_x));
         Quaternion rotation = Quaternion.Euler(new Vector3(0, (float)(180.0 / 3.1416 * boat.heading), 0));
@@ -80,7 +80,6 @@ public class CanoeController : MonoBehaviour
             if (moveHorizontal < 0) state = PaddlingState.PaddlingLeft;
             else if (moveHorizontal > 0) state = PaddlingState.PaddlingRight;
         }
-        updateTurningIncrement(state);
         return state;
     }
     // --
@@ -130,27 +129,4 @@ public class CanoeController : MonoBehaviour
     private bool paddleIsRightSide(double theta) { return (theta < 0); }
     private bool paddleIsLeftSide(double theta) { return (theta > 0); }
 
-    private void updateTurningIncrement(PaddlingState state)
-    {
-        if (state == PaddlingState.PaddlingLeft)
-        {
-            goingLeft = true;
-            if (goingRight)
-            {
-                incrementalTurn = 0;
-                goingRight = false;
-            }
-            incrementalTurn += Time.deltaTime;
-        }
-        else if (state == PaddlingState.PaddlingRight)
-        {
-            goingRight = true;
-            if (goingLeft)
-            {
-                incrementalTurn = 0;
-                goingLeft = false;
-            }
-            incrementalTurn += Time.deltaTime;
-        }
-    }
 }

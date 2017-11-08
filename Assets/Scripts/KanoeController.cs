@@ -7,7 +7,7 @@ public class KanoeController : MonoBehaviour {
 
     private Rigidbody rb;
     private boatCoordinateManager boat;
-    private bool controllingWithOneTouch = false;
+    private bool controllingWithOneTouch = true;
     enum PaddlingState {NotPaddling, PaddlingLeft, PaddlingRight};
     // --
     // These values are to determine if the person is trying to circle
@@ -16,10 +16,10 @@ public class KanoeController : MonoBehaviour {
     // --
     // All variables related to holding a Paddle
     private bool holdingPaddle = true;
-    private double paddleAngleThreshold = 20.0 * 3.1416 / 180.0; // This is 10 degrees
+    private double paddleAngleThreshold = 15.0 * 3.1416 / 180.0; // This is 10 degrees
     // -- 
     // All Variables related to the One Touch Controller
-    //public OVRInput.Controller controller;
+    public OVRInput.Controller controller;
     private oneTouchCoordinates previousHandCoords, currentHandCoords;
     public struct oneTouchCoordinates
     {
@@ -44,9 +44,9 @@ public class KanoeController : MonoBehaviour {
     {
         PaddlingState state = getPaddlingState();
         double paddleDistance = 0.9;
-        if (state == PaddlingState.PaddlingLeft) boat.paddleLeftWithCorrectionFactor(paddleDistance, incrementalTurn);
-        else if (state == PaddlingState.PaddlingRight) boat.paddleRightWithCorrectionFactor(paddleDistance, incrementalTurn);
-        else boat.notPaddlingWithCorrection(incrementalTurn);
+        if (state == PaddlingState.PaddlingLeft) boat.paddleLeftWithCorrectionFactor(paddleDistance);
+        else if (state == PaddlingState.PaddlingRight) boat.paddleRightWithCorrectionFactor(paddleDistance);
+        else boat.notPaddlingWithCorrection();
 
         rb.MovePosition(new Vector3(boat.p_y, 0, boat.p_x));
         Quaternion rotation = Quaternion.Euler(new Vector3(0, (float)(180.0 / 3.1416 * boat.heading), 0));
@@ -80,7 +80,8 @@ public class KanoeController : MonoBehaviour {
             if (moveHorizontal < 0) state = PaddlingState.PaddlingLeft;
             else if (moveHorizontal > 0) state = PaddlingState.PaddlingRight;
         }
-        updateTurningIncrement(state);
+        //updateTurningIncrement(state);
+        boat.updateCorrectionFactor(correctionFactorForState(state));
         return state;
     }
     // --
@@ -97,6 +98,7 @@ public class KanoeController : MonoBehaviour {
         currentHandCoords.zleft = leftHandCoords.z; currentHandCoords.zright = rightHandCoords.z;
         currentHandCoords.dx = rightHandCoords.x - leftHandCoords.x;
         currentHandCoords.dy = rightHandCoords.y - leftHandCoords.y;
+        Debug.Log("Updating hand x: " + rightHandCoords.x);
     }
     private PaddlingState getOneTouchPaddlingState()
     {
@@ -129,28 +131,13 @@ public class KanoeController : MonoBehaviour {
     private bool paddleIsPushingWater(double delta) { return delta > 0.003; }
     private bool paddleIsRightSide(double theta) { return (theta < 0);}
     private bool paddleIsLeftSide(double theta) { return (theta > 0); }
-
-    private void updateTurningIncrement(PaddlingState state)
+    // --
+    // THis is a Hack - It adds a turning factor sa that it reduce the initial turn 
+    private double correctionFactorForState(PaddlingState state)
     {
-        if (state == PaddlingState.PaddlingLeft)
-        {
-            goingLeft = true;
-            if (goingRight)
-            {
-                incrementalTurn = 0;
-                goingRight = false;
-            }
-            incrementalTurn += Time.deltaTime;
-        }
-        else if (state == PaddlingState.PaddlingRight)
-        {
-            goingRight = true;
-            if (goingLeft)
-            {
-                incrementalTurn = 0;
-                goingLeft = false;
-            }
-            incrementalTurn += Time.deltaTime;
-        }
+        double result = 0;
+        if (state == PaddlingState.PaddlingLeft) result = Time.deltaTime;
+        else if (state == PaddlingState.PaddlingRight) result = -Time.deltaTime;
+        return result;
     }
 }

@@ -21,7 +21,7 @@ public class boatCoordinateManager {
     c_side_drag_coeff = 1,
     c_water_mass_density = 1000 /* kg/m3 */;
     private double c_forward_paddle_force = 120 /* N */;
-
+    private double correctionFactor = 0, maxCorrection = 2.5;
 
     private double time_delta /* seconds */, c_boat_front_area, c_boat_side_area, inertial_moment, side_drag_distance;
     public double absolute_linear_speed { get; set; } /* m/s */
@@ -67,7 +67,6 @@ public class boatCoordinateManager {
         // --
         // Assumption: We can estimate the linear speed with the angular speed because for small time intervals, the delta is almost the same.
         double drag = c_side_drag_coeff * c_water_mass_density * c_boat_side_area * (angular_speed * angular_speed) / 2;
-        Debug.Log("Drag:" + drag);
         return drag;
     }
     // --
@@ -89,20 +88,20 @@ public class boatCoordinateManager {
         }
         angular_speed = angular_speed + angular_acc * time_delta;
     }
-
-    private void updateAngularVelocityWithForceAndCorrection(double external_force, double distance_from_center_of_mass, double factor)
+    private bool turningRight(double speed) { return speed >= 0; }
+    private void updateAngularVelocityWithForceAndCorrection(double external_force, double distance_from_center_of_mass)
     {
-        double angular_acc = 0;
-        if (angular_speed >= 0)
-        {
-            angular_acc = (applyFactor(external_force, factor) * distance_from_center_of_mass - sideDrag() * side_drag_distance) / inertial_moment;
+        double angular_acc = 0, corrected_force = 0;
+        corrected_force = applyFactor(external_force, correctionFactor, turningRight(angular_speed));
+        if (turningRight(angular_speed))
+        {  
+            angular_acc = (corrected_force * distance_from_center_of_mass - sideDrag() * side_drag_distance) / inertial_moment;
         }
         else
         {
-            angular_acc = (applyFactor(external_force, factor) * distance_from_center_of_mass + sideDrag() * side_drag_distance) / inertial_moment;
+            angular_acc = (corrected_force * distance_from_center_of_mass + sideDrag() * side_drag_distance) / inertial_moment;
         }
         angular_speed = angular_speed + angular_acc * time_delta;
-        Debug.Log("Ang speed:" + angular_speed);
     }
     // --
     // Every Update, the angle is 
@@ -111,22 +110,22 @@ public class boatCoordinateManager {
         p_x += (float)((absolute_linear_speed * time_delta) * Math.Cos(heading));
         p_y += (float)((absolute_linear_speed * time_delta) * Math.Sin(heading));
     }
-    public void paddleLeftWithCorrectionFactor(double paddleDistanceFromBoatCenter, double factor)
+    public void paddleLeftWithCorrectionFactor(double paddleDistanceFromBoatCenter)
     {
-        updateAngularVelocityWithForceAndCorrection(c_forward_paddle_force, -paddleDistanceFromBoatCenter, factor);
+        updateAngularVelocityWithForceAndCorrection(c_forward_paddle_force, -paddleDistanceFromBoatCenter);
         updateLinearVelocityWithForce(c_forward_paddle_force);
         updateHeadingAndPosition();
     }
 
-    public void paddleRightWithCorrectionFactor(double paddleDistanceFromBoatCenter, double factor)
+    public void paddleRightWithCorrectionFactor(double paddleDistanceFromBoatCenter)
     {
-        updateAngularVelocityWithForceAndCorrection(c_forward_paddle_force, paddleDistanceFromBoatCenter, factor);
+        updateAngularVelocityWithForceAndCorrection(c_forward_paddle_force, paddleDistanceFromBoatCenter);
         updateLinearVelocityWithForce(c_forward_paddle_force);
         updateHeadingAndPosition();
     }
-    public void notPaddlingWithCorrection(double factor)
+    public void notPaddlingWithCorrection()
     {
-        updateAngularVelocityWithForceAndCorrection(0, 0, factor);
+        updateAngularVelocityWithForceAndCorrection(0, 0);
         updateLinearVelocityWithForce(0);
         updateHeadingAndPosition();
     }
@@ -154,11 +153,32 @@ public class boatCoordinateManager {
     // --
     // This is a hack to avoid that the boat changes direction too much on first stride
     // #SorryMom m
-    private double applyFactor(double x, double factor)
+    private double applyFactor(double x, double factor, bool goingRight)
     {
-        double den = 1 / Math.Exp(3 - factor);
-        double max = 2.5;
-        if (den > max) return x * max;
-        else return x * den;
+        double result = 0, m = 1;
+        if (factor > 0 && goingRight)
+        {
+            m = 1 / Math.Exp(3 - Math.Abs(factor));
+        }
+        else if (factor < 0 && !goingRight)
+        {
+            m = 1 / Math.Exp(3 - Math.Abs(factor));
+        }
+        else if (factor > 0 && !goingRight)
+        {
+            correctionFactor = 0;
+        }
+        else if (factor < 0 && goingRight)
+        {
+            correctionFactor = 0;
+        }
+        result = m * x;
+        return result;
+    }
+
+    public void updateCorrectionFactor(double delta)
+    {
+        if(correctionFactor >= -maxCorrection && correctionFactor <= maxCorrection)
+            correctionFactor += delta;
     }
 }

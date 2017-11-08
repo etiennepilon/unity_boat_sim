@@ -44,31 +44,7 @@ public class boatCoordinateManager {
         side_drag_distance = c_boat_length / 2 * 0.9;
         heading = 0; p_x = 0; p_y = 0;
     }
-    /*
-	 This section calculates the drag of the water (rough estimate) and the linear speed.
-	*/
-    private double frontDrag()
-    {
-        return c_front_drag_coeff * c_water_mass_density * c_boat_front_area * (absolute_linear_speed * absolute_linear_speed) / 2;
-    }
-    private void updateLinearVelocityWithForce(double external_force)
-    {
-        double linear_acc = (external_force - frontDrag()) / c_mass;
-        absolute_linear_speed = absolute_linear_speed + linear_acc * time_delta;
-        if (absolute_linear_speed < 0) {
-            absolute_linear_speed = 0;
-        }
-    }
-    /*
-	 This section calculates the drag of the water (rough estimate) and the angular speed.
-	*/
-    private double sideDrag()
-    {
-        // --
-        // Assumption: We can estimate the linear speed with the angular speed because for small time intervals, the delta is almost the same.
-        double drag = c_side_drag_coeff * c_water_mass_density * c_boat_side_area * (angular_speed * angular_speed) / 2;
-        return drag;
-    }
+
     // --
     // Parameters
     // - external_force: Force applied by the paddle
@@ -88,7 +64,7 @@ public class boatCoordinateManager {
         }
         angular_speed = angular_speed + angular_acc * time_delta;
     }
-    private bool turningRight(double speed) { return speed >= 0; }
+
     private void updateAngularVelocityWithForceAndCorrection(double external_force, double distance_from_center_of_mass)
     {
         double angular_acc = 0, corrected_force = 0;
@@ -110,16 +86,63 @@ public class boatCoordinateManager {
         p_x += (float)((absolute_linear_speed * time_delta) * Math.Cos(heading));
         p_y += (float)((absolute_linear_speed * time_delta) * Math.Sin(heading));
     }
+    // --
+    // This is a hack to avoid that the boat changes direction too much on first stride
+    // #SorryMom m
+    private double applyFactor(double x, double factor, bool goingRight)
+    {
+        double result = 0, m = 1;
+        if (factor > 0 && goingRight)
+        {
+            m = 1 / Math.Exp(3 - Math.Abs(factor));
+        }
+        else if (factor < 0 && !goingRight)
+        {
+            m = 1 / Math.Exp(3 - Math.Abs(factor));
+        }
+        else if (factor > 0 && !goingRight)
+        {
+            correctionFactor = correctionFactor/4;
+        }
+        else if (factor < 0 && goingRight)
+        {
+            correctionFactor = correctionFactor / 4;
+        }
+        result = m * x;
+        return result;
+    }
+    public void updateCorrectionFactor(double delta)
+    {
+        if (correctionFactor >= -maxCorrection && correctionFactor <= maxCorrection) correctionFactor += delta;
+    }
+    /*
+	 This section calculates the drag of the water (rough estimate) and the linear speed.
+	*/
+    private double frontDrag()
+    {
+        return c_front_drag_coeff * c_water_mass_density * c_boat_front_area * (absolute_linear_speed * absolute_linear_speed) / 2;
+    }
+    /*
+	 This section calculates the drag of the water (rough estimate) and the angular speed.
+	*/
+    private double sideDrag()
+    {
+        // --
+        // Assumption: We can estimate the linear speed with the angular speed because for small time intervals, the delta is almost the same.
+        double drag = c_side_drag_coeff * c_water_mass_density * c_boat_side_area * (angular_speed * angular_speed) / 2;
+        return drag;
+    }
+
     public void paddleLeftWithCorrectionFactor(double paddleDistanceFromBoatCenter)
     {
-        updateAngularVelocityWithForceAndCorrection(c_forward_paddle_force, -paddleDistanceFromBoatCenter);
+        updateAngularVelocityWithForceAndCorrection(c_forward_paddle_force, paddleDistanceFromBoatCenter);
         updateLinearVelocityWithForce(c_forward_paddle_force);
         updateHeadingAndPosition();
     }
 
     public void paddleRightWithCorrectionFactor(double paddleDistanceFromBoatCenter)
     {
-        updateAngularVelocityWithForceAndCorrection(c_forward_paddle_force, paddleDistanceFromBoatCenter);
+        updateAngularVelocityWithForceAndCorrection(c_forward_paddle_force, -paddleDistanceFromBoatCenter);
         updateLinearVelocityWithForce(c_forward_paddle_force);
         updateHeadingAndPosition();
     }
@@ -129,6 +152,14 @@ public class boatCoordinateManager {
         updateLinearVelocityWithForce(0);
         updateHeadingAndPosition();
     }
+
+    private bool turningRight(double speed) { return speed >= 0; }
+
+
+
+
+    // --------------------------------------------------
+    // Deprecated
     // -- Receives Absolute distance of the paddle from the boat
     public void paddleLeftWithPaddleDistance(double paddleDistanceFromBoatCenter)
     {
@@ -150,35 +181,25 @@ public class boatCoordinateManager {
         updateLinearVelocityWithForce(0);
         updateHeadingAndPosition();
     }
-    // --
-    // This is a hack to avoid that the boat changes direction too much on first stride
-    // #SorryMom m
-    private double applyFactor(double x, double factor, bool goingRight)
+    public void backPaddleLeftWithPaddleDistance(double paddleDistanceFromBoatCenter)
     {
-        double result = 0, m = 1;
-        if (factor > 0 && goingRight)
-        {
-            m = 1 / Math.Exp(3 - Math.Abs(factor));
-        }
-        else if (factor < 0 && !goingRight)
-        {
-            m = 1 / Math.Exp(3 - Math.Abs(factor));
-        }
-        else if (factor > 0 && !goingRight)
-        {
-            correctionFactor = 0;
-        }
-        else if (factor < 0 && goingRight)
-        {
-            correctionFactor = 0;
-        }
-        result = m * x;
-        return result;
+        updateAngularVelocityWithForceAndDistance(c_forward_paddle_force, paddleDistanceFromBoatCenter);
+        updateLinearVelocityWithForce(-c_forward_paddle_force);
+        updateHeadingAndPosition();
     }
-
-    public void updateCorrectionFactor(double delta)
+    public void backPaddleRightWithPaddleDistance(double paddleDistanceFromBoatCenter)
     {
-        if(correctionFactor >= -maxCorrection && correctionFactor <= maxCorrection)
-            correctionFactor += delta;
+        updateAngularVelocityWithForceAndDistance(c_forward_paddle_force, -paddleDistanceFromBoatCenter);
+        updateLinearVelocityWithForce(-c_forward_paddle_force);
+        updateHeadingAndPosition();
+    }
+    private void updateLinearVelocityWithForce(double external_force)
+    {
+        double linear_acc = (external_force - frontDrag()) / c_mass;
+        absolute_linear_speed = absolute_linear_speed + linear_acc * time_delta;
+        if (absolute_linear_speed < 0)
+        {
+            absolute_linear_speed = 0;
+        }
     }
 }

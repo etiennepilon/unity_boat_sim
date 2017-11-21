@@ -146,6 +146,18 @@ public class boatCoordinateManager {
         updateLinearVelocityWithForce(c_forward_paddle_force);
         updateHeadingAndPosition();
     }
+    public void backPaddleLeftWithPaddleDistance(double paddleDistanceFromBoatCenter)
+    {
+        updateAngularVelocityWithForceAndDistance(-c_forward_paddle_force, paddleDistanceFromBoatCenter);
+        updateLinearVelocityWithForce(-c_forward_paddle_force);
+        updateHeadingAndPosition();
+    }
+    public void backPaddleRightWithPaddleDistance(double paddleDistanceFromBoatCenter)
+    {
+        updateAngularVelocityWithForceAndDistance(-c_forward_paddle_force, -paddleDistanceFromBoatCenter);
+        updateLinearVelocityWithForce(-c_forward_paddle_force);
+        updateHeadingAndPosition();
+    }
     public void notPaddlingWithCorrection()
     {
         updateAngularVelocityWithForceAndCorrection(0, 0);
@@ -181,18 +193,7 @@ public class boatCoordinateManager {
         updateLinearVelocityWithForce(0);
         updateHeadingAndPosition();
     }
-    public void backPaddleLeftWithPaddleDistance(double paddleDistanceFromBoatCenter)
-    {
-        updateAngularVelocityWithForceAndDistance(c_forward_paddle_force, paddleDistanceFromBoatCenter);
-        updateLinearVelocityWithForce(-c_forward_paddle_force);
-        updateHeadingAndPosition();
-    }
-    public void backPaddleRightWithPaddleDistance(double paddleDistanceFromBoatCenter)
-    {
-        updateAngularVelocityWithForceAndDistance(c_forward_paddle_force, -paddleDistanceFromBoatCenter);
-        updateLinearVelocityWithForce(-c_forward_paddle_force);
-        updateHeadingAndPosition();
-    }
+
     private void updateLinearVelocityWithForce(double external_force)
     {
         double linear_acc = (external_force - frontDrag()) / c_mass;

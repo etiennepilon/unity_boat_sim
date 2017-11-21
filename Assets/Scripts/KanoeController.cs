@@ -16,7 +16,11 @@ public class KanoeController : MonoBehaviour {
     // --
     // All variables related to holding a Paddle
     private bool holdingPaddle = true;
-    private double paddleAngleThreshold = 15.0 * 3.1416 / 180.0; // This is 10 degrees
+    private double paddleAngleThreshold = 25.0 * 3.1416 / 180.0; // This is 10 degrees
+    // --
+    // This is the ugliest hack so far to avoid small sharp movements back and fo
+    private int paddle_direction_buffer = 0, paddle_buffer_max = 20;
+
     // -- 
     // All Variables related to the One Touch Controller
     public OVRInput.Controller controller;
@@ -44,6 +48,7 @@ public class KanoeController : MonoBehaviour {
     {
         PaddlingState state = getPaddlingState();
         double paddleDistance = 0.9;
+        debug_state(state);
         if (state == PaddlingState.PaddlingLeft) boat.paddleLeftWithCorrectionFactor(paddleDistance);
         else if (state == PaddlingState.PaddlingRight) boat.paddleRightWithCorrectionFactor(paddleDistance);
         else if (state == PaddlingState.BackPaddlingLeft) boat.backPaddleLeftWithPaddleDistance(paddleDistance);
@@ -109,27 +114,61 @@ public class KanoeController : MonoBehaviour {
         // --
         // Calculate the angle between the right and left hand using the right hand as reference
         double theta = Math.Atan(currentHandCoords.dy / currentHandCoords.dx);
-        //Debug.Log(theta * 180.0/3.1416);
+        //Debug.Log(theta );
         if (paddleIsInTheWater(theta) && paddleIsRightSide(theta))
         {
            if (paddleIsPushingWaterBack(previousHandCoords.zright - currentHandCoords.zright))
            {
-                state = PaddlingState.PaddlingRight;
+                // - The buffer is positive when pushing water backward (so movement is forward)
+                if (paddle_direction_buffer >= 0)
+                {
+                    state = PaddlingState.PaddlingRight;
+                    if (paddle_direction_buffer < paddle_buffer_max) paddle_direction_buffer += 1;
+                }
+                else
+                {
+                    paddle_direction_buffer += 1;
+                } 
            }
-            else if (paddleIsPushingWaterForward(previousHandCoords.zleft - currentHandCoords.zleft))
+            else if (paddleIsPushingWaterForward(previousHandCoords.zright - currentHandCoords.zright))
             {
-                state = PaddlingState.BackPaddlingRight;
+                if (paddle_direction_buffer < 0)
+                {
+                    state = PaddlingState.BackPaddlingRight;
+                    if (paddle_direction_buffer > -paddle_buffer_max) paddle_direction_buffer -= 1;
+                }
+                else
+                {
+                    paddle_direction_buffer -= 1;
+                }
+
             }
         }
         else if (paddleIsInTheWater(theta) && paddleIsLeftSide(theta))
         {
            if (paddleIsPushingWaterBack(previousHandCoords.zleft - currentHandCoords.zleft))
            {
-                state = PaddlingState.PaddlingLeft;
+                if (paddle_direction_buffer >= 0)
+                {
+                    state = PaddlingState.PaddlingLeft;
+                    if (paddle_direction_buffer < paddle_buffer_max) paddle_direction_buffer += 1;
+                }
+                else
+                {
+                    paddle_direction_buffer += 1;
+                }
             }
            else if (paddleIsPushingWaterForward(previousHandCoords.zleft - currentHandCoords.zleft))
             {
-                state = PaddlingState.BackPaddlingLeft;
+                if (paddle_direction_buffer < 0)
+                {
+                    state = PaddlingState.BackPaddlingLeft;
+                    if (paddle_direction_buffer > -paddle_buffer_max) paddle_direction_buffer -= 1;
+                }
+                else
+                {
+                    paddle_direction_buffer -= 1;
+                }
             }
         }
     
@@ -153,5 +192,30 @@ public class KanoeController : MonoBehaviour {
        // else if (state == PaddlingState.BackPaddlingRight) result = Time.deltaTime;
         else if (state == PaddlingState.NotPaddling) result = 0;
         return result;
+    }
+
+    private void debug_state(PaddlingState state)
+    {
+        double theta = Math.Atan(currentHandCoords.dy / currentHandCoords.dx);
+        switch (state)
+        {
+            case PaddlingState.PaddlingRight:
+                Debug.Log("Paddling RIght");
+                Debug.Log(paddle_direction_buffer);
+                break;
+            case PaddlingState.PaddlingLeft:
+                Debug.Log("Paddling Left");
+                Debug.Log(paddle_direction_buffer);
+                break;
+            case PaddlingState.BackPaddlingRight:
+                Debug.Log("Back Paddling right");
+                Debug.Log(paddle_direction_buffer);
+                break;
+            case PaddlingState.BackPaddlingLeft:
+                Debug.Log("Back Paddling left");
+                Debug.Log(paddle_direction_buffer);
+                break;
+        }
+        //Debug.Log(theta * 180.0 / 3.1416);
     }
 }

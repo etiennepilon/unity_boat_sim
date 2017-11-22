@@ -37,6 +37,7 @@ public class KanoeController : MonoBehaviour {
             dy = dY;
         }
     }
+
     void Start()
     {
         rb = GetComponent<Rigidbody>();
@@ -48,7 +49,7 @@ public class KanoeController : MonoBehaviour {
     {
         PaddlingState state = getPaddlingState();
         double paddleDistance = 0.9;
-        debug_state(state);
+        //debug_state(state);
         if (state == PaddlingState.PaddlingLeft) boat.paddleLeftWithCorrectionFactor(paddleDistance);
         else if (state == PaddlingState.PaddlingRight) boat.paddleRightWithCorrectionFactor(paddleDistance);
         else if (state == PaddlingState.BackPaddlingLeft) boat.backPaddleLeftWithPaddleDistance(paddleDistance);
@@ -58,6 +59,10 @@ public class KanoeController : MonoBehaviour {
         rb.MovePosition(new Vector3(boat.p_y, 0, boat.p_x));
         Quaternion rotation = Quaternion.Euler(new Vector3(0, (float)(180.0 / 3.1416 * boat.heading), 0));
         rb.MoveRotation(rotation);
+        if (GlobalVariables.grabbing_paddle)
+        {
+            Debug.Log("Grabbing paddle");
+        }
     }
     void OnTriggerEnter(Collider other)
     {
@@ -71,12 +76,11 @@ public class KanoeController : MonoBehaviour {
     private PaddlingState getPaddlingState()
     {
         PaddlingState state = PaddlingState.NotPaddling;
-        if (controllingWithOneTouch && holdingPaddle)
+        if (controllingWithOneTouch && GlobalVariables.grabbing_paddle)
         {
-            // -- TODO
             state = getOneTouchPaddlingState();
         }
-        else if (controllingWithOneTouch && !holdingPaddle)
+        else if (controllingWithOneTouch && !GlobalVariables.grabbing_paddle)
         {
             // -- Should give a sign to the user to hold the paddle/close the hands
             state = PaddlingState.NotPaddling;
@@ -87,7 +91,6 @@ public class KanoeController : MonoBehaviour {
             if (moveHorizontal < 0) state = PaddlingState.PaddlingLeft;
             else if (moveHorizontal > 0) state = PaddlingState.PaddlingRight;
         }
-        //updateTurningIncrement(state);
         boat.updateCorrectionFactor(correctionFactorForState(state));
         return state;
     }

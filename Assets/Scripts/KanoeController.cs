@@ -7,6 +7,7 @@ public class KanoeController : MonoBehaviour {
 
     private Rigidbody rb;
     private boatCoordinateManager boat;
+    private AudioSource audioSource;
 
     private bool controllingWithOneTouch = true;
     enum PaddlingState {NotPaddling, PaddlingLeft, PaddlingRight, BackPaddlingLeft, BackPaddlingRight};    // --
@@ -44,16 +45,34 @@ public class KanoeController : MonoBehaviour {
         boat = new boatCoordinateManager(Time.fixedDeltaTime);
         currentHandCoords = new oneTouchCoordinates();
         previousHandCoords = new oneTouchCoordinates();
+
+        audioSource = GetComponent<AudioSource>();
     }
     void FixedUpdate()
     {
         PaddlingState state = getPaddlingState();
         double paddleDistance = 0.9;
         //debug_state(state);
-        if (state == PaddlingState.PaddlingLeft) boat.paddleLeftWithCorrectionFactor(paddleDistance);
-        else if (state == PaddlingState.PaddlingRight) boat.paddleRightWithCorrectionFactor(paddleDistance);
-        else if (state == PaddlingState.BackPaddlingLeft) boat.backPaddleLeftWithPaddleDistance(paddleDistance);
-        else if (state == PaddlingState.BackPaddlingRight) boat.backPaddleRightWithPaddleDistance(paddleDistance);
+        if (state == PaddlingState.PaddlingLeft)
+        {
+            boat.paddleLeftWithCorrectionFactor(paddleDistance);
+            audioSource.Play();
+        }
+        else if (state == PaddlingState.PaddlingRight)
+        {
+            boat.paddleRightWithCorrectionFactor(paddleDistance);
+            audioSource.Play();
+        }
+        else if (state == PaddlingState.BackPaddlingLeft)
+        {
+            boat.backPaddleLeftWithPaddleDistance(paddleDistance);
+            audioSource.Play();
+        }
+        else if (state == PaddlingState.BackPaddlingRight)
+        {
+            boat.backPaddleRightWithPaddleDistance(paddleDistance);
+            audioSource.Play();
+        }
         else boat.notPaddlingWithCorrection();
 
         rb.MovePosition(new Vector3(boat.p_y, 0, boat.p_x));

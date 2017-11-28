@@ -52,8 +52,17 @@ transform.forward, 0f, grabMask);
             grabbedObject.GetComponent<Rigidbody>().isKinematic = false;
             grabbedObject.transform.parent = null;
             GlobalVariables.grabbing_paddle = false;
+            //resetPaddlePosition();
+
             grabbedObject = null;
+
         }
+    }
+
+    void resetPaddlePosition()
+    {
+        grabbedObject.transform.position = mainCamera.transform.position + initial_position;
+        grabbedObject.transform.eulerAngles = initial_rotation + mainCamera.transform.eulerAngles;
     }
     // Update is called once per frame
     void Update()

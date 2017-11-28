@@ -90,6 +90,7 @@ public class KanoeController : MonoBehaviour {
     // This Method determines the side the user is Paddling 
     private PaddlingState getPaddlingState()
     {
+        holdingPaddle = GlobalVariables.grabbing_paddle;
         PaddlingState state = PaddlingState.NotPaddling;
         if (controllingWithOneTouch && holdingPaddle)
         {

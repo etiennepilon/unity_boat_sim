@@ -35,38 +35,23 @@ transform.forward, 0f, grabMask);
             grabbedObject = hits[closestHit].transform.gameObject;
             grabbedObject.GetComponent<Rigidbody>().isKinematic = true;
             grabbedObject.transform.position = transform.position;
+            grabbedObject.transform.eulerAngles = transform.eulerAngles;
             grabbedObject.transform.parent = transform;
+            
+            if (grabbedObject)
+            {
+                GlobalVariables.grabbing_paddle = true;
+            }
         }
-            /*
-        if (!grabbedObject)
-        {
-        }
-        else
-        {
-            grabbedObject.GetComponent<Rigidbody>().isKinematic = true;
-            grabbedObject.GetComponent<Rigidbody>().position = hand_left.transform.position;
-            Vector3 paddle_rotation = mainCamera.transform.rotation.eulerAngles + initial_rotation;
-            grabbedObject.GetComponent<Rigidbody>().rotation = Quaternion.Euler(paddle_rotation);
-            grabbedObject.transform.parent = transform;
-        }*/
     }
     void DropObject()
     {
         grabbing = false;
         if (grabbedObject != null)
         {
-            //Vector3 paddle_position = transform.position + initial_position;
-
-            // paddle_position.y = (float)0.5;
-            //grabbedObject.GetComponent<Rigidbody>().position = paddle_position;
-            //Vector3 paddle_rotation = transform.rotation.eulerAngles + initial_rotation;
-            //grabbedObject.GetComponent<Rigidbody>().rotation = Quaternion.Euler(paddle_rotation);
-            //grabbedObject.GetComponent<Rigidbody>().isKinematic = false;
-            //grabbedObject.transform.position = paddle_position;
-            //grabbedObject.transform.rotation = Quaternion.Euler(paddle_rotation);
             grabbedObject.GetComponent<Rigidbody>().isKinematic = false;
             grabbedObject.transform.parent = null;
-            //GlobalVariables.grabbing_paddle = false;
+            GlobalVariables.grabbing_paddle = false;
             grabbedObject = null;
         }
     }
@@ -76,7 +61,7 @@ transform.forward, 0f, grabMask);
         if (!grabbing && Input.GetAxis(buttonName) == 1)
         {
             GrabObject();
-            //GlobalVariables.grabbing_paddle = true;
+            
         }
         if (grabbing && Input.GetAxis(buttonName) < 1)
         {
@@ -95,9 +80,8 @@ transform.forward, 0f, grabMask);
         hand_left = GameObject.FindGameObjectWithTag("left_hand");
     }
 }
-/*
+
 public static class GlobalVariables
 {
     public static bool grabbing_paddle;
 } 
-*/

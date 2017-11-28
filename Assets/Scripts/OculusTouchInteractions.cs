@@ -22,21 +22,24 @@ public class OculusTouchInteractions : MonoBehaviour {
     {
         grabbing = true;
         RaycastHit[] hits;
-        if (!grabbedObject){
-            hits = Physics.SphereCastAll(transform.position, grabRadius,
+
+        hits = Physics.SphereCastAll(transform.position, grabRadius,
 transform.forward, 0f, grabMask);
-            if (hits.Length > 0)
+        if (hits.Length > 0)
+        {
+            int closestHit = 0;
+            for (int i = 0; i < hits.Length; ++i)
             {
-                int closestHit = 0;
-                for (int i = 0; i < hits.Length; ++i)
-                {
-                    if (hits[i].distance < hits[closestHit].distance) closestHit = i;
-                }
-                grabbedObject = hits[closestHit].transform.gameObject;
-                grabbedObject.GetComponent<Rigidbody>().isKinematic = true;
-                grabbedObject.transform.position = transform.position;
-                grabbedObject.transform.parent = transform;
+                if (hits[i].distance < hits[closestHit].distance) closestHit = i;
             }
+            grabbedObject = hits[closestHit].transform.gameObject;
+            grabbedObject.GetComponent<Rigidbody>().isKinematic = true;
+            grabbedObject.transform.position = transform.position;
+            grabbedObject.transform.parent = transform;
+        }
+            /*
+        if (!grabbedObject)
+        {
         }
         else
         {
@@ -45,24 +48,26 @@ transform.forward, 0f, grabMask);
             Vector3 paddle_rotation = mainCamera.transform.rotation.eulerAngles + initial_rotation;
             grabbedObject.GetComponent<Rigidbody>().rotation = Quaternion.Euler(paddle_rotation);
             grabbedObject.transform.parent = transform;
-        }
+        }*/
     }
     void DropObject()
     {
         grabbing = false;
         if (grabbedObject != null)
-        {  
-            Vector3 paddle_position = transform.position +
-                initial_position;
-            paddle_position.y = (float)0.5;
+        {
+            //Vector3 paddle_position = transform.position + initial_position;
+
+            // paddle_position.y = (float)0.5;
             //grabbedObject.GetComponent<Rigidbody>().position = paddle_position;
-            Vector3 paddle_rotation = transform.rotation.eulerAngles + initial_rotation;
+            //Vector3 paddle_rotation = transform.rotation.eulerAngles + initial_rotation;
             //grabbedObject.GetComponent<Rigidbody>().rotation = Quaternion.Euler(paddle_rotation);
             //grabbedObject.GetComponent<Rigidbody>().isKinematic = false;
-            grabbedObject.transform.position = paddle_position;
-            grabbedObject.transform.rotation = Quaternion.Euler(paddle_rotation);
+            //grabbedObject.transform.position = paddle_position;
+            //grabbedObject.transform.rotation = Quaternion.Euler(paddle_rotation);
             grabbedObject.GetComponent<Rigidbody>().isKinematic = false;
             grabbedObject.transform.parent = null;
+            //GlobalVariables.grabbing_paddle = false;
+            grabbedObject = null;
         }
     }
     // Update is called once per frame
@@ -71,12 +76,12 @@ transform.forward, 0f, grabMask);
         if (!grabbing && Input.GetAxis(buttonName) == 1)
         {
             GrabObject();
-            GlobalVariables.grabbing_paddle = true;
+            //GlobalVariables.grabbing_paddle = true;
         }
         if (grabbing && Input.GetAxis(buttonName) < 1)
         {
             DropObject();
-            GlobalVariables.grabbing_paddle = false;
+
         }
     }
 
@@ -90,8 +95,9 @@ transform.forward, 0f, grabMask);
         hand_left = GameObject.FindGameObjectWithTag("left_hand");
     }
 }
-
+/*
 public static class GlobalVariables
 {
     public static bool grabbing_paddle;
 } 
+*/

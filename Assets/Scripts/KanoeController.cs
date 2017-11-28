@@ -56,32 +56,28 @@ public class KanoeController : MonoBehaviour {
         if (state == PaddlingState.PaddlingLeft)
         {
             boat.paddleLeftWithCorrectionFactor(paddleDistance);
-            audioSource.Play();
+            //audioSource.Play();
         }
         else if (state == PaddlingState.PaddlingRight)
         {
             boat.paddleRightWithCorrectionFactor(paddleDistance);
-            audioSource.Play();
+           // audioSource.Play();
         }
         else if (state == PaddlingState.BackPaddlingLeft)
         {
             boat.backPaddleLeftWithPaddleDistance(paddleDistance);
-            audioSource.Play();
+            //audioSource.Play();
         }
         else if (state == PaddlingState.BackPaddlingRight)
         {
             boat.backPaddleRightWithPaddleDistance(paddleDistance);
-            audioSource.Play();
+          //  audioSource.Play();
         }
         else boat.notPaddlingWithCorrection();
 
         rb.MovePosition(new Vector3(boat.p_y, 0, boat.p_x));
         Quaternion rotation = Quaternion.Euler(new Vector3(0, (float)(180.0 / 3.1416 * boat.heading), 0));
         rb.MoveRotation(rotation);
-        if (GlobalVariables.grabbing_paddle)
-        {
-            Debug.Log("Grabbing paddle");
-        }
     }
     void OnTriggerEnter(Collider other)
     {
@@ -95,11 +91,11 @@ public class KanoeController : MonoBehaviour {
     private PaddlingState getPaddlingState()
     {
         PaddlingState state = PaddlingState.NotPaddling;
-        if (controllingWithOneTouch && GlobalVariables.grabbing_paddle)
+        if (controllingWithOneTouch && holdingPaddle)
         {
             state = getOneTouchPaddlingState();
         }
-        else if (controllingWithOneTouch && !GlobalVariables.grabbing_paddle)
+        else if (controllingWithOneTouch && holdingPaddle)
         {
             // -- Should give a sign to the user to hold the paddle/close the hands
             state = PaddlingState.NotPaddling;

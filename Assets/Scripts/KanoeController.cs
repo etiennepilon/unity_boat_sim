@@ -56,22 +56,22 @@ public class KanoeController : MonoBehaviour {
         if (state == PaddlingState.PaddlingLeft)
         {
             boat.paddleLeftWithCorrectionFactor(paddleDistance);
-            //audioSource.Play();
+            audioSource.Play();
         }
         else if (state == PaddlingState.PaddlingRight)
         {
             boat.paddleRightWithCorrectionFactor(paddleDistance);
-           // audioSource.Play();
+            audioSource.Play();
         }
         else if (state == PaddlingState.BackPaddlingLeft)
         {
             boat.backPaddleLeftWithPaddleDistance(paddleDistance);
-            //audioSource.Play();
+            audioSource.Play();
         }
         else if (state == PaddlingState.BackPaddlingRight)
         {
             boat.backPaddleRightWithPaddleDistance(paddleDistance);
-          //  audioSource.Play();
+            audioSource.Play();
         }
         else boat.notPaddlingWithCorrection();
 

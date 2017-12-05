@@ -21,7 +21,9 @@ public class KanoeController : MonoBehaviour {
     // --
     // This is the ugliest hack so far to avoid small sharp movements back and fo
     private int paddle_direction_buffer = 0, paddle_buffer_max = 20;
-
+    private bool sound_is_on = false;
+    private bool change_of_state = false;
+    private PaddlingState previous_state = PaddlingState.NotPaddling;
     // -- 
     // All Variables related to the One Touch Controller
     public OVRInput.Controller controller;
@@ -53,38 +55,79 @@ public class KanoeController : MonoBehaviour {
         PaddlingState state = getPaddlingState();
         double paddleDistance = 0.9;
         //debug_state(state);
+
         if (state == PaddlingState.PaddlingLeft)
         {
             boat.paddleLeftWithCorrectionFactor(paddleDistance);
-            audioSource.Play();
         }
         else if (state == PaddlingState.PaddlingRight)
         {
             boat.paddleRightWithCorrectionFactor(paddleDistance);
-            audioSource.Play();
         }
         else if (state == PaddlingState.BackPaddlingLeft)
         {
             boat.backPaddleLeftWithPaddleDistance(paddleDistance);
-            audioSource.Play();
         }
         else if (state == PaddlingState.BackPaddlingRight)
         {
             boat.backPaddleRightWithPaddleDistance(paddleDistance);
-            audioSource.Play();
+            //if (sound_is_on) audioSource.Play();
         }
         else boat.notPaddlingWithCorrection();
 
         rb.MovePosition(new Vector3(boat.p_y, 0, boat.p_x));
         Quaternion rotation = Quaternion.Euler(new Vector3(0, (float)(180.0 / 3.1416 * boat.heading), 0));
         rb.MoveRotation(rotation);
+        if (state != PaddlingState.NotPaddling && previous_state != state)
+        {
+            audioSource.Play();
+        }
+
+        previous_state = state;
     }
     void OnTriggerEnter(Collider other)
     {
-        if (other.gameObject.CompareTag("Pick Up"))
+        /*if (other.gameObject.CompareTag("Pick Up"))
         {
             other.gameObject.SetActive(false);
+        }*/
+        if (other.gameObject.name == "rock3")
+        {
+            Debug.Log("CAILLOUX");
+            rb.velocity = Vector3.zero;
         }
+        Debug.Log("CAILLOUX");
+    }
+
+    void OnCollisionEnter(Collision collision)
+    {
+        if (collision.gameObject.CompareTag("buoy"))
+        {
+            Debug.Log("BUOYYYYYYYY");
+            //rb.velocity = Vector3.zero;
+        }
+        if (collision.gameObject.name == "rock3")
+        {
+            Debug.Log("CAILLOUX");
+            //rb.velocity = Vector3.zero;
+        }
+        Debug.Log("CAILLOUX");
+        rb.velocity = Vector3.zero;
+
+    }
+    void OnCollisionStay(Collision collision)
+    {
+        if (collision.gameObject.CompareTag("buoy"))
+        {
+            Debug.Log("BUOYYYYYYYY");
+            //rb.velocity = Vector3.zero;
+        }
+        if (collision.gameObject.name == "rock3")
+        {
+            Debug.Log("CAILLOUX");
+            //rb.velocity = Vector3.zero;
+        }
+        Debug.Log("CAILLOUX");
     }
     // --
     // This Method determines the side the user is Paddling 
